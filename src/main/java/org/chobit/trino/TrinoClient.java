@@ -1,7 +1,5 @@
 package org.chobit.trino;
 
-import java.io.Closeable;
-
 /**
  * Trino客户端接口
  *
@@ -17,7 +15,7 @@ public interface TrinoClient {
     QueryStatusInfo query(String queryId, ClientSession session);
 
 
-    QueryStatusInfo execute(String sql, ClientSession session);
+    JsonResponse<QueryResults> execute(String sql, ClientSession session);
 
 
     QueryStatusInfo executeWithAdvance(String query, ClientSession session);

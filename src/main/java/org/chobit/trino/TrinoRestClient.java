@@ -73,10 +73,9 @@ public class TrinoRestClient implements TrinoClient {
 
 
     @Override
-    public QueryStatusInfo execute(String query, ClientSession session) {
+    public JsonResponse<QueryResults> execute(String query, ClientSession session) {
         Request request = buildQueryRequest(session, query, STATEMENT.path);
-        JsonResponse<QueryResults> response = JsonResponse.execute(QUERY_RESULT_CODEC, client, request);
-        return response.getValue();
+        return JsonResponse.execute(QUERY_RESULT_CODEC, client, request);
     }
 
 
