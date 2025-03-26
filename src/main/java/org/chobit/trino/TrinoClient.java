@@ -1,10 +1,6 @@
 package org.chobit.trino;
 
 import java.io.Closeable;
-import java.time.ZoneId;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * Trino客户端接口
@@ -12,19 +8,17 @@ import java.util.Set;
  * @author zhangrui
  * @since 2025/3/23
  */
-public interface TrinoClient extends Closeable {
+public interface TrinoClient {
 
 
     boolean kill(String queryId, ClientSession session);
 
 
-    QueryResult query(String sql, ClientSession session);
+    QueryStatusInfo query(String queryId, ClientSession session);
 
 
-    void execute(String sql, ClientSession session);
+    QueryStatusInfo execute(String sql, ClientSession session);
 
 
-    boolean advance();
-
-
+    QueryStatusInfo executeWithAdvance(String query, ClientSession session);
 }

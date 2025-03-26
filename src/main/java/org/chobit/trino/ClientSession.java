@@ -1,13 +1,7 @@
 package org.chobit.trino;
 
-import javax.xml.datatype.Duration;
 import java.net.URI;
 import java.time.ZoneId;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
 
@@ -24,9 +18,11 @@ public class ClientSession {
     private final String user;
     private final String source;
     private final String path;
+    private final String catalog;
+    private final String schema;
     private final ZoneId timeZone;
     private final String transactionId;
-    private final Duration clientRequestTimeout;
+    private final long clientRequestTimeout;
     private final boolean compressionDisabled;
 
 
@@ -35,17 +31,22 @@ public class ClientSession {
                           String user,
                           String source,
                           String path,
+                          String catalog,
+                          String schema,
                           ZoneId timeZone,
                           String transactionId,
-                          Duration clientRequestTimeout,
+                          long clientRequestTimeout,
                           boolean compressionDisabled) {
         this.server = requireNonNull(server, "trino server is null");
         this.principal = principal;
         this.user = user;
         this.source = source;
         this.path = path;
+        this.catalog = catalog;
+        this.schema = schema;
         this.timeZone = requireNonNull(timeZone, "timeZone is null");
         this.transactionId = transactionId;
+
         this.clientRequestTimeout = clientRequestTimeout;
         this.compressionDisabled = compressionDisabled;
     }
@@ -70,6 +71,14 @@ public class ClientSession {
         return path;
     }
 
+    public String getCatalog() {
+        return catalog;
+    }
+
+    public String getSchema() {
+        return schema;
+    }
+
     public ZoneId getTimeZone() {
         return timeZone;
     }
@@ -78,12 +87,16 @@ public class ClientSession {
         return transactionId;
     }
 
-    public Duration getClientRequestTimeout() {
+    public long getClientRequestTimeout() {
         return clientRequestTimeout;
     }
 
     public boolean isCompressionDisabled() {
         return compressionDisabled;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public static final class Builder {
@@ -92,9 +105,11 @@ public class ClientSession {
         private String user;
         private String source;
         private String path;
+        private String catalog;
+        private String schema;
         private ZoneId timeZone;
         private String transactionId;
-        private Duration clientRequestTimeout;
+        private long clientRequestTimeout;
         private boolean compressionDisabled;
 
         private Builder() {
@@ -106,6 +121,8 @@ public class ClientSession {
             user = clientSession.getUser();
             source = clientSession.getSource();
             path = clientSession.getPath();
+            catalog = clientSession.getCatalog();
+            schema = clientSession.getSchema();
             timeZone = clientSession.getTimeZone();
             transactionId = clientSession.getTransactionId();
             clientRequestTimeout = clientSession.getClientRequestTimeout();
@@ -138,6 +155,16 @@ public class ClientSession {
             return this;
         }
 
+        public Builder catalog(String catalog) {
+            this.catalog = catalog;
+            return this;
+        }
+
+        public Builder schema(String schema) {
+            this.schema = schema;
+            return this;
+        }
+
         public Builder timeZone(ZoneId timeZone) {
             this.timeZone = timeZone;
             return this;
@@ -148,7 +175,7 @@ public class ClientSession {
             return this;
         }
 
-        public Builder clientRequestTimeout(Duration clientRequestTimeout) {
+        public Builder clientRequestTimeout(long clientRequestTimeout) {
             this.clientRequestTimeout = clientRequestTimeout;
             return this;
         }
@@ -165,6 +192,8 @@ public class ClientSession {
                     user,
                     source,
                     path,
+                    catalog,
+                    schema,
                     timeZone,
                     transactionId,
                     clientRequestTimeout,
