@@ -1,5 +1,8 @@
 package org.chobit.trino;
 
+import org.chobit.trino.models.ExecuteResults;
+import org.chobit.trino.models.QueryResults;
+
 /**
  * Trino客户端接口
  *
@@ -12,11 +15,14 @@ public interface TrinoClient {
     boolean kill(String queryId, ClientSession session);
 
 
-    QueryStatusInfo query(String queryId, ClientSession session);
+    QueryResults query(String queryId, ClientSession session);
 
 
-    JsonResponse<QueryResults> execute(String sql, ClientSession session);
+    ExecuteStatusInfo execute(String sql, ClientSession session);
 
 
-    QueryStatusInfo executeWithAdvance(String query, ClientSession session);
+    ExecuteStatusInfo execute(String sql,
+                              ClientSession session,
+                              StageCallback<JsonResponse<ExecuteResults>> callback);
+
 }

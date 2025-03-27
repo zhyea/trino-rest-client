@@ -1,7 +1,8 @@
-package org.chobit.trino;
+package org.chobit.trino.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.chobit.trino.ExecuteStatusInfo;
 
 import java.net.URI;
 import java.util.Collections;
@@ -15,7 +16,7 @@ import static java.util.Objects.requireNonNull;
  * @author zhangrui
  * @since 2025/3/23
  */
-public class QueryResults implements QueryStatusInfo {
+public class ExecuteResults implements ExecuteStatusInfo {
 
     private final String id;
     private final URI infoUri;
@@ -30,16 +31,16 @@ public class QueryResults implements QueryStatusInfo {
 
 
     @JsonCreator
-    public QueryResults(@JsonProperty("id") String id,
-                        @JsonProperty("infoUri") URI infoUri,
-                        @JsonProperty("partialCancelUri") URI partialCancelUri,
-                        @JsonProperty("nextUri") URI nextUri,
-                        @JsonProperty("columns") List<Column> columns,
-                        @JsonProperty("data") List<List<Object>> data,
-                        @JsonProperty("error") QueryError error,
-                        @JsonProperty("updateType") String updateType,
-                        @JsonProperty("updateCount") Long updateCount,
-                        @JsonProperty("stats") StatementStats stats) {
+    public ExecuteResults(@JsonProperty("id") String id,
+                          @JsonProperty("infoUri") URI infoUri,
+                          @JsonProperty("partialCancelUri") URI partialCancelUri,
+                          @JsonProperty("nextUri") URI nextUri,
+                          @JsonProperty("columns") List<Column> columns,
+                          @JsonProperty("data") List<List<Object>> data,
+                          @JsonProperty("error") QueryError error,
+                          @JsonProperty("updateType") String updateType,
+                          @JsonProperty("updateCount") Long updateCount,
+                          @JsonProperty("stats") StatementStats stats) {
 
         this.id = requireNonNull(id, "id is null");
         this.infoUri = requireNonNull(infoUri, "infoUri is null");

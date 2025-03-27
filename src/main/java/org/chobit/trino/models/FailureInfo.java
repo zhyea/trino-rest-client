@@ -1,4 +1,4 @@
-package org.chobit.trino;
+package org.chobit.trino.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -17,7 +17,8 @@ public record FailureInfo(String type,
                           FailureInfo cause,
                           List<FailureInfo> suppressed,
                           List<String> stack,
-                          ErrorLocation errorLocation) {
+                          ErrorLocation errorLocation,
+                          ErrorCode errorCode) {
 
 
     @JsonCreator
@@ -27,7 +28,8 @@ public record FailureInfo(String type,
             @JsonProperty("cause") FailureInfo cause,
             @JsonProperty("suppressed") List<FailureInfo> suppressed,
             @JsonProperty("stack") List<String> stack,
-            @JsonProperty("errorLocation") ErrorLocation errorLocation) {
+            @JsonProperty("errorLocation") ErrorLocation errorLocation,
+            @JsonProperty("errorCode") ErrorCode errorCode) {
 
         this.type = type;
         this.message = message;
@@ -35,6 +37,7 @@ public record FailureInfo(String type,
         this.suppressed = Collections.unmodifiableList(suppressed);
         this.stack = Collections.unmodifiableList(stack);
         this.errorLocation = errorLocation;
+        this.errorCode = errorCode;
     }
 
 

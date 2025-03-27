@@ -1,6 +1,8 @@
 package org.chobit.trino;
 
 import okhttp3.*;
+import org.chobit.trino.models.QueryResults;
+import org.chobit.trino.models.ExecuteResults;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -31,7 +33,8 @@ public class TrinoRestClient implements TrinoClient {
 
     private static final MediaType MEDIA_TYPE_TEXT = MediaType.parse("text/plain; charset=utf-8");
 
-    private static final JsonCodec<QueryResults> QUERY_RESULT_CODEC = jsonCodec(QueryResults.class);
+    private static final JsonCodec<ExecuteResults> QUERY_RESULT_CODEC = jsonCodec(ExecuteResults.class);
+    private static final JsonCodec<QueryResults> QUERY_INFO_CODEC = jsonCodec(QueryResults.class);
 
     private final OkHttpClient client = new OkHttpClient();
 
@@ -60,28 +63,38 @@ public class TrinoRestClient implements TrinoClient {
 
 
     @Override
-    public QueryStatusInfo query(String queryId, ClientSession session) {
+    public QueryResults query(String queryId, ClientSession session) {
         URI uri = URI.create(session.getServer() + QUERY.path + queryId);
 
         Request request = prepareRequest(HttpUrl.get(uri), session)
                 .get()
                 .build();
 
-        JsonResponse<QueryResults> response = JsonResponse.execute(QUERY_RESULT_CODEC, client, request);
+        JsonResponse<QueryResults> response = JsonResponse.execute(QUERY_INFO_CODEC, client, request);
+        if (null != response.getException()) {
+            throw new ClientException("query trino error.", response.getException());
+        }
+
+        if (null == response.getValue()) {
+            throw new ClientException(format("query trino error. response code:[%d], message:[%s]",
+                    response.getStatusCode(), response.getStatusMessage()));
+        }
+
         return response.getValue();
     }
 
 
     @Override
-    public JsonResponse<QueryResults> execute(String query, ClientSession session) {
-        Request request = buildQueryRequest(session, query, STATEMENT.path);
-        return JsonResponse.execute(QUERY_RESULT_CODEC, client, request);
+    public ExecuteStatusInfo execute(String sql, ClientSession session) {
+        return this.execute(sql, session, null);
     }
 
 
     @Override
-    public QueryStatusInfo executeWithAdvance(String query, ClientSession session) {
-        try (QueryRunner queryRunner = new QueryRunner(session, client, query)) {
+    public ExecuteStatusInfo execute(String sql,
+                                     ClientSession session,
+                                     StageCallback<JsonResponse<ExecuteResults>> callback) {
+        try (QueryRunner queryRunner = new QueryRunner(session, client, sql, callback)) {
             return queryRunner.run();
         }
     }
@@ -135,26 +148,35 @@ public class TrinoRestClient implements TrinoClient {
         private final OkHttpClient client;
         private final long requestTimeoutMillis;
         private final String query;
+        private final StageCallback<JsonResponse<ExecuteResults>> callback;
 
-        private final AtomicReference<QueryResults> currentResults = new AtomicReference<>();
+        private final AtomicReference<ExecuteResults> currentResults = new AtomicReference<>();
 
 
-        public QueryRunner(ClientSession session, OkHttpClient client, String query) {
+        public QueryRunner(ClientSession session,
+                           OkHttpClient client,
+                           String query,
+                           StageCallback<JsonResponse<ExecuteResults>> callback) {
             this.session = requireNonNull(session);
             this.client = requireNonNull(client);
             this.requestTimeoutMillis = (session.getClientRequestTimeout() > 0 ?
                     session.getClientRequestTimeout() : TimeUnit.MINUTES.toMillis(1L));
             this.query = query;
+            this.callback = callback;
         }
 
 
-        public QueryStatusInfo run() {
+        public ExecuteStatusInfo run() {
 
             long start = System.currentTimeMillis();
 
             Request request = buildQueryRequest(session, query, STATEMENT.path);
-            JsonResponse<QueryResults> response = JsonResponse.execute(QUERY_RESULT_CODEC, client, request);
+            JsonResponse<ExecuteResults> response = JsonResponse.execute(QUERY_RESULT_CODEC, client, request);
             currentResults.set(response.getValue());
+
+            if (null != callback) {
+                callback.onStage(response);
+            }
 
             boolean advanced = advance(start);
             while (advanced) {
@@ -204,12 +226,16 @@ public class TrinoRestClient implements TrinoClient {
 
                 attempts++;
 
-                JsonResponse<QueryResults> response;
+                JsonResponse<ExecuteResults> response;
                 try {
                     response = JsonResponse.execute(QUERY_RESULT_CODEC, client, request);
                 } catch (Exception e) {
                     cause = e;
                     continue;
+                }
+
+                if (null != callback) {
+                    callback.onStage(response);
                 }
 
                 if (response.getStatusCode() == HTTP_OK && response.isHasValue()) {
@@ -225,7 +251,7 @@ public class TrinoRestClient implements TrinoClient {
         }
 
 
-        private RuntimeException requestFailedException(Request request, JsonResponse<QueryResults> response) {
+        private RuntimeException requestFailedException(Request request, JsonResponse<ExecuteResults> response) {
             if (response.isHasValue()) {
                 return new RuntimeException(format("Error fetching next at %s returned HTTP %s",
                         request.url(), response.getStatusCode()));
@@ -256,15 +282,7 @@ public class TrinoRestClient implements TrinoClient {
             return state.get() == State.CLIENT_ABORTED;
         }
 
-        public boolean isClientError() {
-            return state.get() == State.CLIENT_ERROR;
-        }
-
-        public boolean isFinished() {
-            return state.get() == State.FINISHED;
-        }
-
-        public QueryStatusInfo currentStatusInfo() {
+        public ExecuteStatusInfo currentStatusInfo() {
             return currentResults.get();
         }
 

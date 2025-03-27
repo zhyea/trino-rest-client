@@ -2,15 +2,15 @@ package org.chobit.trino;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.chobit.commons.json.LocalDateTimeModule;
+import org.chobit.commons.utils.JsonKit;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Type;
-import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
@@ -22,11 +22,12 @@ import static java.util.Objects.requireNonNull;
  */
 public class JsonCodec<T> {
 
-    private static final Supplier<ObjectMapper> OBJECT_MAPPER_SUPPLIER = () -> new ObjectMapper()
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
 
     public static <T> JsonCodec<T> jsonCodec(Class<T> type) {
-        return new JsonCodec<>(OBJECT_MAPPER_SUPPLIER.get(), type);
+        ObjectMapper mapper = JsonKit.mapper();
+        mapper.registerModule(new LocalDateTimeModule());
+        return new JsonCodec<>(mapper, type);
     }
 
     private final ObjectMapper mapper;

@@ -1,4 +1,4 @@
-package org.chobit.trino;
+package org.chobit.trino.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,7 +11,8 @@ import static java.util.Objects.requireNonNull;
  * @author zhangrui
  * @since 2025/3/25
  */
-public record Column(String name, String type) {
+public record Column(String name,
+                     String type) {
 
     @JsonCreator
     public Column(@JsonProperty("name") String name,

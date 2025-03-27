@@ -1,4 +1,4 @@
-package org.chobit.trino;
+package org.chobit.trino.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

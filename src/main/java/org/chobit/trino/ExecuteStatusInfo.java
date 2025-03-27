@@ -1,5 +1,9 @@
 package org.chobit.trino;
 
+import org.chobit.trino.models.Column;
+import org.chobit.trino.models.QueryError;
+import org.chobit.trino.models.StatementStats;
+
 import java.net.URI;
 import java.util.List;
 
@@ -9,7 +13,7 @@ import java.util.List;
  * @author zhangrui
  * @since 2025/3/25
  */
-public interface QueryStatusInfo {
+public interface ExecuteStatusInfo {
 
     String getId();
 
