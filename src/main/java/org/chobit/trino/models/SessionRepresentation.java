@@ -20,7 +20,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public final record SessionRepresentation(
+public record SessionRepresentation(
         @JsonProperty("queryId") String queryId,
         @JsonProperty("transactionId") String transactionId,
         @JsonProperty("clientTransactionSupport") boolean clientTransactionSupport,

@@ -11,7 +11,7 @@ import static java.util.Objects.requireNonNull;
  * @author robin
  * @since 2025/3/23
  */
-public class ClientSession {
+public class ClientContext {
 
     private final URI server;
     private final String principal;
@@ -22,11 +22,12 @@ public class ClientSession {
     private final String schema;
     private final ZoneId timeZone;
     private final String transactionId;
+    private final String session;
     private final long clientRequestTimeout;
     private final boolean compressionDisabled;
 
 
-    private ClientSession(URI server,
+    private ClientContext(URI server,
                           String principal,
                           String user,
                           String source,
@@ -35,6 +36,7 @@ public class ClientSession {
                           String schema,
                           ZoneId timeZone,
                           String transactionId,
+                          String session,
                           long clientRequestTimeout,
                           boolean compressionDisabled) {
         this.server = requireNonNull(server, "trino server is null");
@@ -46,6 +48,7 @@ public class ClientSession {
         this.schema = schema;
         this.timeZone = requireNonNull(timeZone, "timeZone is null");
         this.transactionId = transactionId;
+        this.session = session;
 
         this.clientRequestTimeout = clientRequestTimeout;
         this.compressionDisabled = compressionDisabled;
@@ -87,6 +90,10 @@ public class ClientSession {
         return transactionId;
     }
 
+    public String getSession() {
+        return session;
+    }
+
     public long getClientRequestTimeout() {
         return clientRequestTimeout;
     }
@@ -109,24 +116,26 @@ public class ClientSession {
         private String schema;
         private ZoneId timeZone;
         private String transactionId;
+        private String session;
         private long clientRequestTimeout;
         private boolean compressionDisabled;
 
         private Builder() {
         }
 
-        private Builder(ClientSession clientSession) {
-            server = clientSession.getServer();
-            principal = clientSession.getPrincipal();
-            user = clientSession.getUser();
-            source = clientSession.getSource();
-            path = clientSession.getPath();
-            catalog = clientSession.getCatalog();
-            schema = clientSession.getSchema();
-            timeZone = clientSession.getTimeZone();
-            transactionId = clientSession.getTransactionId();
-            clientRequestTimeout = clientSession.getClientRequestTimeout();
-            compressionDisabled = clientSession.isCompressionDisabled();
+        private Builder(ClientContext clientContext) {
+            server = clientContext.getServer();
+            principal = clientContext.getPrincipal();
+            user = clientContext.getUser();
+            source = clientContext.getSource();
+            path = clientContext.getPath();
+            catalog = clientContext.getCatalog();
+            schema = clientContext.getSchema();
+            timeZone = clientContext.getTimeZone();
+            transactionId = clientContext.getTransactionId();
+            session = clientContext.getSession();
+            clientRequestTimeout = clientContext.getClientRequestTimeout();
+            compressionDisabled = clientContext.isCompressionDisabled();
         }
 
 
@@ -175,6 +184,11 @@ public class ClientSession {
             return this;
         }
 
+        public Builder session(String session) {
+            this.session = session;
+            return this;
+        }
+
         public Builder clientRequestTimeout(long clientRequestTimeout) {
             this.clientRequestTimeout = clientRequestTimeout;
             return this;
@@ -185,8 +199,8 @@ public class ClientSession {
             return this;
         }
 
-        public ClientSession build() {
-            return new ClientSession(
+        public ClientContext build() {
+            return new ClientContext(
                     server,
                     principal,
                     user,
@@ -196,6 +210,7 @@ public class ClientSession {
                     schema,
                     timeZone,
                     transactionId,
+                    session,
                     clientRequestTimeout,
                     compressionDisabled);
         }

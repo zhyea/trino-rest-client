@@ -31,7 +31,7 @@ public class TrinoRestClientTest {
     @Test
     public void kill() {
         TrinoClient client = new TrinoRestClient();
-        ClientSession session = createSession();
+        ClientContext session = createSession();
         ExecuteStatusInfo executeStatusInfo = client.execute(sql, createSession());
         Threads.sleep(TimeUnit.MILLISECONDS, 300);
         boolean success = client.kill(executeStatusInfo.getId(), session);
@@ -42,7 +42,7 @@ public class TrinoRestClientTest {
     @Test
     public void query(){
         TrinoClient client = new TrinoRestClient();
-        ClientSession session = createSession();
+        ClientContext session = createSession();
         ExecuteStatusInfo executeStatusInfo = client.execute(sql, createSession());
         QueryResults result = client.query(executeStatusInfo.getId(), session);
         System.out.println(JsonKit.toJson(result));
@@ -50,8 +50,8 @@ public class TrinoRestClientTest {
 
 
 
-    private ClientSession createSession() {
-        return ClientSession.builder()
+    private ClientContext createSession() {
+        return ClientContext.builder()
                 .server(URI.create("http://trino-stg.mte.io"))
                 .user("hadoop")
                 .source("zhy")

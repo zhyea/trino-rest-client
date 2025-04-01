@@ -12,17 +12,17 @@ import org.chobit.trino.models.QueryResults;
 public interface TrinoClient {
 
 
-    boolean kill(String queryId, ClientSession session);
+    boolean kill(String queryId, ClientContext context);
 
 
-    QueryResults query(String queryId, ClientSession session);
+    QueryResults query(String queryId, ClientContext context);
 
 
-    ExecuteStatusInfo execute(String sql, ClientSession session);
+    ExecuteStatusInfo execute(String sql, ClientContext context);
 
 
     ExecuteStatusInfo execute(String sql,
-                              ClientSession session,
+                              ClientContext context,
                               StageCallback<JsonResponse<ExecuteResults>> callback);
 
 }

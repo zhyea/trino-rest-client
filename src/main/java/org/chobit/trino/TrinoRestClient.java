@@ -39,11 +39,11 @@ public class TrinoRestClient implements TrinoClient {
     private final OkHttpClient client = new OkHttpClient();
 
     @Override
-    public boolean kill(String queryId, ClientSession session) {
+    public boolean kill(String queryId, ClientContext context) {
 
-        URI uri = URI.create(session.getServer() + QUERY.path + queryId);
+        URI uri = URI.create(context.getServer() + QUERY.path + queryId);
 
-        Request request = prepareRequest(HttpUrl.get(uri), session)
+        Request request = prepareRequest(HttpUrl.get(uri), context)
                 .delete()
                 .build();
 
@@ -63,10 +63,10 @@ public class TrinoRestClient implements TrinoClient {
 
 
     @Override
-    public QueryResults query(String queryId, ClientSession session) {
-        URI uri = URI.create(session.getServer() + QUERY.path + queryId);
+    public QueryResults query(String queryId, ClientContext context) {
+        URI uri = URI.create(context.getServer() + QUERY.path + queryId);
 
-        Request request = prepareRequest(HttpUrl.get(uri), session)
+        Request request = prepareRequest(HttpUrl.get(uri), context)
                 .get()
                 .build();
 
@@ -85,47 +85,48 @@ public class TrinoRestClient implements TrinoClient {
 
 
     @Override
-    public ExecuteStatusInfo execute(String sql, ClientSession session) {
-        return this.execute(sql, session, null);
+    public ExecuteStatusInfo execute(String sql, ClientContext context) {
+        return this.execute(sql, context, null);
     }
 
 
     @Override
     public ExecuteStatusInfo execute(String sql,
-                                     ClientSession session,
+                                     ClientContext context,
                                      StageCallback<JsonResponse<ExecuteResults>> callback) {
-        try (QueryRunner queryRunner = new QueryRunner(session, client, sql, callback)) {
+        try (QueryRunner queryRunner = new QueryRunner(context, client, sql, callback)) {
             return queryRunner.run();
         }
     }
 
 
-    private Request buildQueryRequest(ClientSession session, String query, String path) {
-        HttpUrl url = HttpUrl.get(session.getServer());
+    private Request buildQueryRequest(ClientContext context, String query, String path) {
+        HttpUrl url = HttpUrl.get(context.getServer());
         if (url == null) {
-            throw new ClientException("Invalid server URL: " + session.getServer());
+            throw new ClientException("Invalid server URL: " + context.getServer());
         }
         url = url.newBuilder().encodedPath(path).build();
 
-        Request.Builder builder = prepareRequest(url, session)
+        Request.Builder builder = prepareRequest(url, context)
                 .post(RequestBody.Companion.create(query, MEDIA_TYPE_TEXT));
 
         return builder.build();
     }
 
 
-    private Request.Builder prepareRequest(HttpUrl url, ClientSession session) {
+    private Request.Builder prepareRequest(HttpUrl url, ClientContext context) {
         Request.Builder builder = new Request.Builder()
                 .url(url);
 
         Headers headers = TrinoHeader.builder()
-                .user(session.getUser())
-                .source(session.getSource())
-                .timeZone(session.getTimeZone().getId())
-                .transactionId(session.getTransactionId())
-                .acceptEncoding(session.isCompressionDisabled())
-                .catalog(session.getCatalog())
-                .schema(session.getSchema())
+                .user(context.getUser())
+                .source(context.getSource())
+                .timeZone(context.getTimeZone().getId())
+                .transactionId(context.getTransactionId())
+                .acceptEncoding(context.isCompressionDisabled())
+                .catalog(context.getCatalog())
+                .schema(context.getSchema())
+                .session(context.getSession())
                 .build();
 
         builder.headers(headers);
@@ -144,7 +145,7 @@ public class TrinoRestClient implements TrinoClient {
 
         private final AtomicReference<State> state = new AtomicReference<>(State.RUNNING);
 
-        private final ClientSession session;
+        private final ClientContext session;
         private final OkHttpClient client;
         private final long requestTimeoutMillis;
         private final String query;
@@ -153,7 +154,7 @@ public class TrinoRestClient implements TrinoClient {
         private final AtomicReference<ExecuteResults> currentResults = new AtomicReference<>();
 
 
-        public QueryRunner(ClientSession session,
+        public QueryRunner(ClientContext session,
                            OkHttpClient client,
                            String query,
                            StageCallback<JsonResponse<ExecuteResults>> callback) {
