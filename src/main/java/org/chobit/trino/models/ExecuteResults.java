@@ -3,8 +3,10 @@ package org.chobit.trino.models;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.chobit.trino.ExecuteStatusInfo;
+import org.chobit.trino.QueryResultData;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -16,14 +18,14 @@ import static java.util.Objects.requireNonNull;
  * @author zhangrui
  * @since 2025/3/23
  */
-public class ExecuteResults implements ExecuteStatusInfo {
+public class ExecuteResults implements ExecuteStatusInfo, QueryResultData {
 
     private final String id;
     private final URI infoUri;
     private final URI partialCancelUri;
     private final URI nextUri;
     private final List<Column> columns;
-    private final Iterable<List<Object>> data;
+    private Collection<List<Object>> data;
     private final QueryError error;
     private final String updateType;
     private final Long updateCount;
@@ -75,8 +77,12 @@ public class ExecuteResults implements ExecuteStatusInfo {
         return columns;
     }
 
-    public Iterable<List<Object>> getData() {
+    public Collection<List<Object>> getData() {
         return data;
+    }
+
+    public void setData(Collection<List<Object>> data) {
+        this.data = data;
     }
 
     public QueryError getError() {

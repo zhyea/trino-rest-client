@@ -18,6 +18,7 @@ import static org.chobit.commons.utils.StrKit.isBlank;
  */
 public final class JsonResponse<T> {
 
+
     public static final String LOCATION = "Location";
 
     private final int statusCode;

@@ -1,19 +1,21 @@
 package org.chobit.trino;
 
 import okhttp3.*;
-import org.chobit.trino.models.QueryResults;
+import org.chobit.commons.utils.Collections2;
 import org.chobit.trino.models.ExecuteResults;
+import org.chobit.trino.models.QueryResults;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.lang.String.format;
-import static java.net.HttpURLConnection.HTTP_OK;
-import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
+import static java.net.HttpURLConnection.*;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.chobit.commons.utils.StrKit.isNotBlank;
@@ -48,7 +50,7 @@ public class TrinoRestClient implements TrinoClient {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            if (response.code() != HTTP_OK) {
+            if (response.code() != HTTP_OK && response.code() != HTTP_NO_CONTENT) {
                 String responseBody = (null != response.body() ? response.body().string() : "none");
                 String message = format("kill query failed, response code:[%d], detail:[%s]",
                         response.code(), responseBody);
@@ -63,7 +65,7 @@ public class TrinoRestClient implements TrinoClient {
 
 
     @Override
-    public QueryResults query(String queryId, ClientContext context) {
+    public QueryResults queryStatus(String queryId, ClientContext context) {
         URI uri = URI.create(context.getServer() + QUERY.path + queryId);
 
         Request request = prepareRequest(HttpUrl.get(uri), context)
@@ -87,6 +89,26 @@ public class TrinoRestClient implements TrinoClient {
     @Override
     public ExecuteStatusInfo execute(String sql, ClientContext context) {
         return this.execute(sql, context, null);
+    }
+
+
+    @Override
+    public ExecuteResults executeAndQuery(String sql, ClientContext context) {
+        final List<List<Object>> resultData = new LinkedList<>();
+        ExecuteStatusInfo r = this.execute(sql, context, info -> {
+            if (null != info && null != info.getValue() && Collections2.isNotEmpty(info.getValue().getData())) {
+                resultData.addAll(info.getValue().getData());
+            }
+        });
+
+        if (null == r) {
+            return null;
+        }
+
+        ExecuteResults result = (ExecuteResults) r;
+        result.setData(resultData);
+
+        return result;
     }
 
 
@@ -167,7 +189,7 @@ public class TrinoRestClient implements TrinoClient {
         }
 
 
-        public ExecuteStatusInfo run() {
+        public ExecuteResults run() {
 
             long start = System.currentTimeMillis();
 
@@ -283,7 +305,7 @@ public class TrinoRestClient implements TrinoClient {
             return state.get() == State.CLIENT_ABORTED;
         }
 
-        public ExecuteStatusInfo currentStatusInfo() {
+        public ExecuteResults currentStatusInfo() {
             return currentResults.get();
         }
 
