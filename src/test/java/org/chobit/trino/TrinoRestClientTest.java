@@ -1,7 +1,7 @@
 package org.chobit.trino;
 
 import org.chobit.commons.utils.JsonKit;
-import org.chobit.trino.models.QueryResults;
+import org.chobit.trino.models.QueryStatusInfo;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
@@ -50,7 +50,7 @@ public class TrinoRestClientTest {
         TrinoClient client = new TrinoRestClient();
         ClientSession session = createSession();
         String queryId = "20250409_063109_00167_dbwmj";
-        QueryResults result = client.queryStatus(queryId, session);
+        QueryStatusInfo result = client.queryStatus(queryId, session);
         System.out.println(JsonKit.toJson(result));
     }
 

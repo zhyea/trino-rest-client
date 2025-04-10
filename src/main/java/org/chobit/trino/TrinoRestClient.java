@@ -3,7 +3,7 @@ package org.chobit.trino;
 import okhttp3.*;
 import org.chobit.commons.utils.Collections2;
 import org.chobit.trino.models.ExecuteResults;
-import org.chobit.trino.models.QueryResults;
+import org.chobit.trino.models.QueryStatusInfo;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -36,7 +36,7 @@ public class TrinoRestClient implements TrinoClient {
     private static final MediaType MEDIA_TYPE_TEXT = MediaType.parse("text/plain; charset=utf-8");
 
     private static final JsonCodec<ExecuteResults> QUERY_RESULT_CODEC = jsonCodec(ExecuteResults.class);
-    private static final JsonCodec<QueryResults> QUERY_INFO_CODEC = jsonCodec(QueryResults.class);
+    private static final JsonCodec<QueryStatusInfo> QUERY_INFO_CODEC = jsonCodec(QueryStatusInfo.class);
 
     private final OkHttpClient client = new OkHttpClient();
 
@@ -65,14 +65,14 @@ public class TrinoRestClient implements TrinoClient {
 
 
     @Override
-    public QueryResults queryStatus(String queryId, ClientSession context) {
+    public QueryStatusInfo queryStatus(String queryId, ClientSession context) {
         URI uri = URI.create(context.getServer() + QUERY.path + queryId);
 
         Request request = prepareRequest(HttpUrl.get(uri), context)
                 .get()
                 .build();
 
-        JsonResponse<QueryResults> response = JsonResponse.execute(QUERY_INFO_CODEC, client, request);
+        JsonResponse<QueryStatusInfo> response = JsonResponse.execute(QUERY_INFO_CODEC, client, request);
         if (null != response.getException()) {
             throw new ClientException("query trino error.", response.getException());
         }

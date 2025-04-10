@@ -1,7 +1,7 @@
 package org.chobit.trino;
 
 import org.chobit.trino.models.ExecuteResults;
-import org.chobit.trino.models.QueryResults;
+import org.chobit.trino.models.QueryStatusInfo;
 
 /**
  * Trino客户端接口
@@ -28,7 +28,7 @@ public interface TrinoClient {
      * @param context 客户端上下文
      * @return 对应查询任务的状态
      */
-    QueryResults queryStatus(String queryId, ClientSession context);
+    QueryStatusInfo queryStatus(String queryId, ClientSession context);
 
 
     /**
