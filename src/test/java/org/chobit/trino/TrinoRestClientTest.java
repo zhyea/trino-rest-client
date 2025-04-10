@@ -38,7 +38,7 @@ public class TrinoRestClientTest {
     @Test
     public void kill() {
         TrinoClient client = new TrinoRestClient();
-        ClientContext session = createSession();
+        ClientSession session = createSession();
         String queryId = "20250409_062952_00163_dbwmj";
         boolean success = client.kill(queryId, session);
         System.out.println(success);
@@ -48,15 +48,15 @@ public class TrinoRestClientTest {
     @Test
     public void queryStatus() {
         TrinoClient client = new TrinoRestClient();
-        ClientContext session = createSession();
+        ClientSession session = createSession();
         String queryId = "20250409_063109_00167_dbwmj";
         QueryResults result = client.queryStatus(queryId, session);
         System.out.println(JsonKit.toJson(result));
     }
 
 
-    private ClientContext createSession() {
-        return ClientContext.builder()
+    private ClientSession createSession() {
+        return ClientSession.builder()
                 .server(URI.create("http://127.0.0.1:8889"))
                 .user("hadoop")
                 .source("zhy")

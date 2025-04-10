@@ -18,7 +18,7 @@ public interface TrinoClient {
      * @param context 客户端上下文
      * @return 是否执行成功
      */
-    boolean kill(String queryId, ClientContext context);
+    boolean kill(String queryId, ClientSession context);
 
 
     /**
@@ -28,7 +28,7 @@ public interface TrinoClient {
      * @param context 客户端上下文
      * @return 对应查询任务的状态
      */
-    QueryResults queryStatus(String queryId, ClientContext context);
+    QueryResults queryStatus(String queryId, ClientSession context);
 
 
     /**
@@ -40,7 +40,7 @@ public interface TrinoClient {
      * @param context 客户端上下文
      * @return 查询任务的最终状态
      */
-    ExecuteStatusInfo execute(String sql, ClientContext context);
+    ExecuteStatusInfo execute(String sql, ClientSession context);
 
 
     /**
@@ -54,7 +54,7 @@ public interface TrinoClient {
      * @return 查询任务的最终状态
      */
     ExecuteStatusInfo execute(String sql,
-                              ClientContext context,
+                              ClientSession context,
                               StageCallback<JsonResponse<ExecuteResults>> callback);
 
 
@@ -67,6 +67,6 @@ public interface TrinoClient {
      * @param context 客户端上下文
      * @return 查询任务执行结果
      */
-    ExecuteResults executeAndQuery(String sql, ClientContext context);
+    ExecuteResults executeAndQuery(String sql, ClientSession context);
 
 }

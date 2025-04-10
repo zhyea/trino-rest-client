@@ -41,7 +41,7 @@ public class TrinoRestClient implements TrinoClient {
     private final OkHttpClient client = new OkHttpClient();
 
     @Override
-    public boolean kill(String queryId, ClientContext context) {
+    public boolean kill(String queryId, ClientSession context) {
 
         URI uri = URI.create(context.getServer() + QUERY.path + queryId);
 
@@ -65,7 +65,7 @@ public class TrinoRestClient implements TrinoClient {
 
 
     @Override
-    public QueryResults queryStatus(String queryId, ClientContext context) {
+    public QueryResults queryStatus(String queryId, ClientSession context) {
         URI uri = URI.create(context.getServer() + QUERY.path + queryId);
 
         Request request = prepareRequest(HttpUrl.get(uri), context)
@@ -87,13 +87,13 @@ public class TrinoRestClient implements TrinoClient {
 
 
     @Override
-    public ExecuteStatusInfo execute(String sql, ClientContext context) {
+    public ExecuteStatusInfo execute(String sql, ClientSession context) {
         return this.execute(sql, context, null);
     }
 
 
     @Override
-    public ExecuteResults executeAndQuery(String sql, ClientContext context) {
+    public ExecuteResults executeAndQuery(String sql, ClientSession context) {
         final List<List<Object>> resultData = new LinkedList<>();
         ExecuteStatusInfo r = this.execute(sql, context, info -> {
             if (null != info && null != info.getValue() && Collections2.isNotEmpty(info.getValue().getData())) {
@@ -114,7 +114,7 @@ public class TrinoRestClient implements TrinoClient {
 
     @Override
     public ExecuteStatusInfo execute(String sql,
-                                     ClientContext context,
+                                     ClientSession context,
                                      StageCallback<JsonResponse<ExecuteResults>> callback) {
         try (QueryRunner queryRunner = new QueryRunner(context, client, sql, callback)) {
             return queryRunner.run();
@@ -122,7 +122,7 @@ public class TrinoRestClient implements TrinoClient {
     }
 
 
-    private Request buildQueryRequest(ClientContext context, String query, String path) {
+    private Request buildQueryRequest(ClientSession context, String query, String path) {
         HttpUrl url = HttpUrl.get(context.getServer());
         if (url == null) {
             throw new ClientException("Invalid server URL: " + context.getServer());
@@ -136,7 +136,7 @@ public class TrinoRestClient implements TrinoClient {
     }
 
 
-    private Request.Builder prepareRequest(HttpUrl url, ClientContext context) {
+    private Request.Builder prepareRequest(HttpUrl url, ClientSession context) {
         Request.Builder builder = new Request.Builder()
                 .url(url);
 
@@ -148,7 +148,7 @@ public class TrinoRestClient implements TrinoClient {
                 .acceptEncoding(context.isCompressionDisabled())
                 .catalog(context.getCatalog())
                 .schema(context.getSchema())
-                .session(context.getSession())
+                .session(context.getHeaderSession())
                 .build();
 
         builder.headers(headers);
@@ -167,7 +167,7 @@ public class TrinoRestClient implements TrinoClient {
 
         private final AtomicReference<State> state = new AtomicReference<>(State.RUNNING);
 
-        private final ClientContext session;
+        private final ClientSession session;
         private final OkHttpClient client;
         private final long requestTimeoutMillis;
         private final String query;
@@ -176,7 +176,7 @@ public class TrinoRestClient implements TrinoClient {
         private final AtomicReference<ExecuteResults> currentResults = new AtomicReference<>();
 
 
-        public QueryRunner(ClientContext session,
+        public QueryRunner(ClientSession session,
                            OkHttpClient client,
                            String query,
                            StageCallback<JsonResponse<ExecuteResults>> callback) {
