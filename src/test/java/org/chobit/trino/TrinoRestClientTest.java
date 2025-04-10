@@ -57,7 +57,7 @@ public class TrinoRestClientTest {
 
     private ClientContext createSession() {
         return ClientContext.builder()
-                .server(URI.create("http://trino-stg.mte.io"))
+                .server(URI.create("http://127.0.0.1:8889"))
                 .user("hadoop")
                 .source("zhy")
                 .catalog("hive")
