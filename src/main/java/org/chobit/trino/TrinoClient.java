@@ -15,20 +15,20 @@ public interface TrinoClient {
      * 取消当前正在执行的查询任务
      *
      * @param queryId 查询ID
-     * @param context 客户端上下文
+     * @param session 客户端上下文
      * @return 是否执行成功
      */
-    boolean kill(String queryId, ClientSession context);
+    boolean kill(String queryId, ClientSession session);
 
 
     /**
      * 获取查询任务的状态
      *
      * @param queryId 查询ID
-     * @param context 客户端上下文
+     * @param session 客户端上下文
      * @return 对应查询任务的状态
      */
-    QueryStatusInfo queryStatus(String queryId, ClientSession context);
+    QueryStatusInfo queryStatus(String queryId, ClientSession session);
 
 
     /**
@@ -37,10 +37,10 @@ public interface TrinoClient {
      * 该方法并不能得到查询结果，只能查询任务结束时得到查询任务的最终状态
      *
      * @param sql     查询SQL
-     * @param context 客户端上下文
+     * @param session 客户端上下文
      * @return 查询任务的最终状态
      */
-    ExecuteStatusInfo execute(String sql, ClientSession context);
+    ExecuteStatusInfo execute(String sql, ClientSession session);
 
 
     /**
@@ -49,12 +49,12 @@ public interface TrinoClient {
      * 该方法的返回值不是sql的查询结果，但可以通过callback方法从中间结果集中得到查询结果
      *
      * @param sql      查询SQL
-     * @param context  客户端上下文
+     * @param session  客户端上下文
      * @param callback 回调函数，通过该函数可以获取到任务的中间结果集
      * @return 查询任务的最终状态
      */
     ExecuteStatusInfo execute(String sql,
-                              ClientSession context,
+                              ClientSession session,
                               StageCallback<JsonResponse<ExecuteResults>> callback);
 
 
@@ -64,9 +64,9 @@ public interface TrinoClient {
      * 该方法的返回值不是sql的查询结果，但可以通过callback方法从中间结果集中得到查询结果
      *
      * @param sql     查询SQL
-     * @param context 客户端上下文
+     * @param session 客户端上下文
      * @return 查询任务执行结果
      */
-    ExecuteResults executeAndQuery(String sql, ClientSession context);
+    ExecuteResults executeAndQuery(String sql, ClientSession session);
 
 }

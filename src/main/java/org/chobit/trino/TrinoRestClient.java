@@ -41,11 +41,11 @@ public class TrinoRestClient implements TrinoClient {
     private final OkHttpClient client = new OkHttpClient();
 
     @Override
-    public boolean kill(String queryId, ClientSession context) {
+    public boolean kill(String queryId, ClientSession session) {
 
-        URI uri = URI.create(context.getServer() + QUERY.path + queryId);
+        URI uri = URI.create(session.getServer() + QUERY.path + queryId);
 
-        Request request = prepareRequest(HttpUrl.get(uri), context)
+        Request request = prepareRequest(HttpUrl.get(uri), session)
                 .delete()
                 .build();
 
@@ -65,10 +65,10 @@ public class TrinoRestClient implements TrinoClient {
 
 
     @Override
-    public QueryStatusInfo queryStatus(String queryId, ClientSession context) {
-        URI uri = URI.create(context.getServer() + QUERY.path + queryId);
+    public QueryStatusInfo queryStatus(String queryId, ClientSession session) {
+        URI uri = URI.create(session.getServer() + QUERY.path + queryId);
 
-        Request request = prepareRequest(HttpUrl.get(uri), context)
+        Request request = prepareRequest(HttpUrl.get(uri), session)
                 .get()
                 .build();
 
@@ -87,15 +87,15 @@ public class TrinoRestClient implements TrinoClient {
 
 
     @Override
-    public ExecuteStatusInfo execute(String sql, ClientSession context) {
-        return this.execute(sql, context, null);
+    public ExecuteStatusInfo execute(String sql, ClientSession session) {
+        return this.execute(sql, session, null);
     }
 
 
     @Override
-    public ExecuteResults executeAndQuery(String sql, ClientSession context) {
+    public ExecuteResults executeAndQuery(String sql, ClientSession session) {
         final List<List<Object>> resultData = new LinkedList<>();
-        ExecuteStatusInfo r = this.execute(sql, context, info -> {
+        ExecuteStatusInfo r = this.execute(sql, session, info -> {
             if (null != info && null != info.getValue() && Collections2.isNotEmpty(info.getValue().getData())) {
                 resultData.addAll(info.getValue().getData());
             }
@@ -114,41 +114,41 @@ public class TrinoRestClient implements TrinoClient {
 
     @Override
     public ExecuteStatusInfo execute(String sql,
-                                     ClientSession context,
+                                     ClientSession session,
                                      StageCallback<JsonResponse<ExecuteResults>> callback) {
-        try (QueryRunner queryRunner = new QueryRunner(context, client, sql, callback)) {
+        try (QueryRunner queryRunner = new QueryRunner(session, client, sql, callback)) {
             return queryRunner.run();
         }
     }
 
 
-    private Request buildQueryRequest(ClientSession context, String query, String path) {
-        HttpUrl url = HttpUrl.get(context.getServer());
+    private Request buildQueryRequest(ClientSession session, String query, String path) {
+        HttpUrl url = HttpUrl.get(session.getServer());
         if (url == null) {
-            throw new ClientException("Invalid server URL: " + context.getServer());
+            throw new ClientException("Invalid server URL: " + session.getServer());
         }
         url = url.newBuilder().encodedPath(path).build();
 
-        Request.Builder builder = prepareRequest(url, context)
+        Request.Builder builder = prepareRequest(url, session)
                 .post(RequestBody.Companion.create(query, MEDIA_TYPE_TEXT));
 
         return builder.build();
     }
 
 
-    private Request.Builder prepareRequest(HttpUrl url, ClientSession context) {
+    private Request.Builder prepareRequest(HttpUrl url, ClientSession session) {
         Request.Builder builder = new Request.Builder()
                 .url(url);
 
         Headers headers = TrinoHeader.builder()
-                .user(context.getUser())
-                .source(context.getSource())
-                .timeZone(context.getTimeZone().getId())
-                .transactionId(context.getTransactionId())
-                .acceptEncoding(context.isCompressionDisabled())
-                .catalog(context.getCatalog())
-                .schema(context.getSchema())
-                .session(context.getHeaderSession())
+                .user(session.getUser())
+                .source(session.getSource())
+                .timeZone(session.getTimeZone().getId())
+                .transactionId(session.getTransactionId())
+                .acceptEncoding(session.isCompressionDisabled())
+                .catalog(session.getCatalog())
+                .schema(session.getSchema())
+                .session(session.getHeaderSession())
                 .build();
 
         builder.headers(headers);
