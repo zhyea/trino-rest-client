@@ -56,6 +56,8 @@ public class TrinoRestClient implements TrinoClient {
                         response.code(), responseBody);
                 throw new ClientException(message);
             }
+        } catch (ClientException e) {
+            throw e;
         } catch (IOException e) {
             throw new ClientException("kill query error", e);
         }
